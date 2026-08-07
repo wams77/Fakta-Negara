@@ -2,8 +2,11 @@ name: Generate YouTube Shorts Bot
 
 on:
   schedule:
-    - cron: '0 8 * * *'
-  workflow_dispatch:
+    # 22:00 UTC = 06:00 WITA
+    # 04:00 UTC = 12:00 WITA
+    # 10:00 UTC = 18:00 WITA
+    - cron: '0 22,4,10 * * *'
+  workflow_dispatch: # Mengizinkan eksekusi manual via tombol
 
 jobs:
   build-and-upload:
