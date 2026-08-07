@@ -106,46 +106,62 @@ def download_multiple_pexels_videos(queries):
     return downloaded_files
 
 # ==========================================
-# 5. FUNGSI RENDER VIDEO GABUNGAN (MOVIEPY)
+# 5. FUNGSI RENDER VIDEO GABUNGAN (MOVIEPY - DIPERBAIKI UNTUK ANTI TERPOTONG)
 # ==========================================
 def render_video(json_data, video_files):
     print("[*] Memulai proses render penggabungan video...")
     
     audio = AudioFileClip("audio.mp3")
+    audio_duration = audio.duration
     
     clips = []
     for file in video_files:
         print(f"[*] Memproses klip: {file}")
+        # Resize semua video agar sama besar (penting agar concatenate tidak error)
         clip = VideoFileClip(file).without_audio().resize((1080, 1920))
         clips.append(clip)
         
-    gabungan_video = concatenate_videoclips(clips, method="compose")
+    # Gabungkan semua klip pendek menjadi satu
+    gabungan_sementara = concatenate_videoclips(clips, method="compose")
     
-    if gabungan_video.duration < audio.duration:
-        print("[!] Gabungan video lebih pendek dari audio. Melakukan looping...")
-        gabungan_video = gabungan_video.fx(vfx.loop, duration=audio.duration)
-    else:
-        gabungan_video = gabungan_video.subclip(0, audio.duration)
+    # ------------------------------------------------------------------
+    # LOGIKA PENTING: PENGULANGAN VIDEO (LOOPING)
+    # ------------------------------------------------------------------
+    # Jika gabungan video (misal 15 detik) lebih pendek dari audio (misal 40 detik),
+    # kita wajib me-looping video tersebut agar pas dengan audio.
+    if gabungan_sementara.duration < audio_duration:
+        print(f"[!] Gabungan video ({gabungan_sementara.duration}s) lebih pendek dari audio ({audio_duration}s). Melakukan looping...")
         
-    gabungan_video = gabungan_video.set_audio(audio)
+        # fx.loop akan mengulang video terus-menerus hingga mencapai duration yang diminta
+        final_gabungan = gabungan_sementara.fx(vfx.loop, duration=audio_duration)
+    else:
+        print(f"[*] Gabungan video cukup panjang. Memotong agar pas dengan audio...")
+        # Jika video lebih panjang, potong saja sisanya
+        final_gabungan = gabungan_sementara.subclip(0, audio_duration)
+        
+    # Masukkan suara narator
+    final_gabungan = final_gabungan.set_audio(audio)
     
+    # Tambahkan Teks Judul
     try:
         txt_clip = TextClip(
             json_data["judul"], 
-            fontsize=45, 
+            fontsize=50, 
             color='white', 
-            bg_color='rgba(0,0,0,0.5)', 
+            bg_color='rgba(0,0,0,0.6)', 
             method='caption', 
-            size=(gabungan_video.w - 100, None)
+            size=(final_gabungan.w - 100, None),
+            font='Arial-Bold' # Opsional: Pastikan font terbaca jelas
         )
-        txt_clip = txt_clip.set_pos(('center', 'center')).set_duration(gabungan_video.duration)
-        final_video = CompositeVideoClip([gabungan_video, txt_clip])
+        # Posisikan judul sedikit di atas tengah
+        txt_clip = txt_clip.set_pos(('center', 300)).set_duration(final_gabungan.duration)
+        video_with_text = CompositeVideoClip([final_gabungan, txt_clip])
     except Exception as e:
         print(f"[!] Gagal membuat teks (ImageMagick error), merender tanpa teks. Error: {e}")
-        final_video = gabungan_video
+        video_with_text = final_gabungan
     
     print("[*] Mengekspor hasil akhir (Ini akan memakan waktu)...")
-    final_video.write_videofile(
+    video_with_text.write_videofile(
         "hasil_shorts.mp4", 
         fps=24, 
         codec="libx264", 
