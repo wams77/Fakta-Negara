@@ -29,16 +29,31 @@ def get_script_from_groq(negara):
     print(f"[*] Meminta naskah untuk {negara} dari Groq API (Llama 3.3 70B)...")
     client = Groq(api_key=GROQ_API_KEY)
     
-    prompt = f"""Kamu adalah pembuat konten YouTube Shorts profesional. Buatkan 3 fakta unik tentang kehidupan, tradisi, atau budaya di negara {negara}. 
-    Naskah harus berbahasa Indonesia, santai, dan durasi jika dibaca maksimal 45 detik.
-    Berikan 3 kata kunci bahasa Inggris (maksimal 3 kata per keyword) yang spesifik dan visual untuk mencari 3 video latar berbeda di Pexels yang relevan.
-    Wajib balas HANYA dengan format JSON seperti ini:
+    prompt = f"""Kamu adalah pakar 'hook' dan 'storytelling' untuk YouTube Shorts. 
+    Tugasmu membuat naskah video maksimal 45 detik (sekitar 70-80 kata) tentang 3 fakta SUPER UNIK, ANEH, atau MENCENGANGKAN dari negara {negara}.
+
+    ATURAN SANGAT KETAT:
+    1. JANGAN gunakan fakta umum buku pelajaran. Cari rahasia gila, hukum aneh, sejarah lucu, atau tradisi absurd.
+    2. Kalimat pertama WAJIB berupa HOOK yang memancing rasa penasaran ekstrem (Contoh: "Tahu nggak negara yang...", "Pernah bayangin hidup di tempat yang...").
+    3. Gunakan bahasa Indonesia santai, ekspresif, mengalir cepat, tanpa sapaan membosankan seperti "Halo semua".
+    4. Akhiri dengan kalimat pancingan agar penonton berkomentar.
+    5. Berikan 3 kata kunci bahasa Inggris (maks. 3 kata per keyword) untuk mencari 3 video latar di Pexels. Kata kunci harus BENDA/AKTIVITAS VISUAL NYATA, bukan abstrak.
+
+    Wajib balas HANYA dengan format JSON seperti ini tanpa teks pengantar apa pun:
     {{
-        "judul": "Judul Shorts yang menarik",
-        "deskripsi": "Deskripsi singkat video dan 3 hashtag",
-        "naskah": "Teks naskah lengkap",
+        "judul": "Judul clickbait dan bikin penasaran",
+        "deskripsi": "Deskripsi singkat dan 3 hashtag",
+        "naskah": "Teks naskah lengkap dari hook sampai akhir",
         "query_pexels": ["keyword 1", "keyword 2", "keyword 3"]
     }}"""
+
+    response = client.chat.completions.create(
+        messages=[{"role": "user", "content": prompt}],
+        model="llama-3.3-70b-versatile", 
+        response_format={"type": "json_object"}
+    )
+    
+    return json.loads(response.choices[0].message.content)
 
     # MENGGUNAKAN LLAMA 3.3 TERBARU
     response = client.chat.completions.create(
