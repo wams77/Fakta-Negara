@@ -2,9 +2,8 @@ name: Generate YouTube Shorts Bot
 
 on:
   schedule:
-    # Berjalan setiap hari pada jam 08:00 UTC (15:00 WIB / 16:00 WITA)
     - cron: '0 8 * * *'
-  workflow_dispatch: # Mengizinkan Anda menekan tombol "Run workflow" secara manual untuk pengujian
+  workflow_dispatch:
 
 jobs:
   build-and-upload:
@@ -25,8 +24,6 @@ jobs:
         sudo apt-get install -y ffmpeg imagemagick
         
     - name: Fix ImageMagick Policy for MoviePy
-      # ImageMagick di Ubuntu secara default membatasi rendering teks karena alasan keamanan.
-      # Perintah ini membuka akses read/write agar MoviePy bisa membuat teks subtitle/judul.
       run: |
         sudo sed -i 's/none/read,write/g' /etc/ImageMagick-6/policy.xml
 
@@ -35,7 +32,6 @@ jobs:
         pip install -r requirements.txt
 
     - name: Run Bot Script
-      # Memanggil semua Secrets yang sudah disimpan di pengaturan GitHub
       env:
         GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
@@ -45,9 +41,7 @@ jobs:
         
     - name: Upload Artifact (Opsional)
       uses: actions/upload-artifact@v4
-      # Langkah ini menyimpan hasil video di GitHub agar Anda bisa mendownloadnya
-      # secara manual jika terjadi gagal upload ke YouTube
       with:
         name: youtube-shorts-video
         path: hasil_shorts.mp4
-        retention-days: 7 # Menghapus video dari server GitHub setelah 7 hari untuk menghemat ruang
+        retention-days: 7
