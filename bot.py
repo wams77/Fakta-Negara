@@ -42,35 +42,7 @@ NEGARA_LIST = [
     "Trinidad dan Tobago", "Tunisia", "Turki", "Turkmenistan", "Tuvalu", "Uganda", "Ukraina", 
     "Uni Emirat Arab", "Uruguay", "Uzbekistan", "Vanuatu", "Vatikan", "Venezuela", "Vietnam", 
     "Yaman", "Yordania", "Yunani", "Zambia", "Zimbabwe"
-]# Daftar 190+ negara di dunia untuk menghindari duplikasi konten dalam waktu dekat
-NEGARA_LIST = [
-    "Afganistan", "Afrika Selatan", "Albania", "Aljazair", "Amerika Serikat", "Andorra", "Angola", 
-    "Antigua dan Barbuda", "Arab Saudi", "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan", 
-    "Bahama", "Bahrain", "Bangladesh", "Barbados", "Belanda", "Belarus", "Belgia", "Belize", "Benin", 
-    "Bhutan", "Bolivia", "Bosnia dan Herzegovina", "Botswana", "Brasil", "Brunei Darussalam", "Bulgaria", 
-    "Burkina Faso", "Burundi", "Ceko", "Chad", "Chili", "China", "Denmark", "Djibouti", "Dominika", 
-    "Ekuador", "El Salvador", "Eritrea", "Estonia", "Eswatini", "Ethiopia", "Fiji", "Filipina", 
-    "Finlandia", "Gabon", "Gambia", "Georgia", "Ghana", "Grenada", "Guatemala", "Guinea", 
-    "Guinea Khatulistiwa", "Guinea-Bissau", "Guyana", "Haiti", "Honduras", "Hongaria", "India", 
-    "Indonesia", "Inggris", "Irak", "Iran", "Irlandia", "Islandia", "Israel", "Italia", "Jamaika", 
-    "Jepang", "Jerman", "Kamboja", "Kamerun", "Kanada", "Kazakhstan", "Kenya", "Kirgizstan", "Kiribati", 
-    "Kolombia", "Komoro", "Kongo", "Korea Selatan", "Korea Utara", "Kosta Rika", "Kroasia", "Kuba", 
-    "Kuwait", "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein", "Lituania", 
-    "Luksemburg", "Madagaskar", "Makedonia Utara", "Maladewa", "Malawi", "Malaysia", "Mali", "Malta", 
-    "Maroko", "Marshall", "Mauritania", "Mauritius", "Meksiko", "Mesir", "Mikronesia", "Moldova", 
-    "Monako", "Mongolia", "Montenegro", "Mozambik", "Myanmar", "Namibia", "Nauru", "Nepal", "Niger", 
-    "Nigeria", "Nikaragua", "Niue", "Norwegia", "Oman", "Pakistan", "Palau", "Panama", "Pantai Gading", 
-    "Papua Nugini", "Paraguay", "Peru", "Polandia", "Portugal", "Prancis", "Qatar", "Rumania", "Rusia", 
-    "Rwanda", "Saint Kitts dan Nevis", "Saint Lucia", "Saint Vincent dan Grenadines", "Samoa", 
-    "San Marino", "Sao Tome dan Principe", "Selandia Baru", "Senegal", "Serbia", "Seychelles", 
-    "Sierra Leone", "Singapura", "Siprus", "Slovenia", "Slowakia", "Kepulauan Solomon", "Somalia", 
-    "Spanyol", "Sri Lanka", "Sudan", "Sudan Selatan", "Suriah", "Suriname", "Swedia", "Swiss", 
-    "Taiwan", "Tajikistan", "Tanjung Verde", "Tanzania", "Thailand", "Timor Leste", "Togo", "Tonga", 
-    "Trinidad dan Tobago", "Tunisia", "Turki", "Turkmenistan", "Tuvalu", "Uganda", "Ukraina", 
-    "Uni Emirat Arab", "Uruguay", "Uzbekistan", "Vanuatu", "Vatikan", "Venezuela", "Vietnam", 
-    "Yaman", "Yordania", "Yunani", "Zambia", "Zimbabwe"
 ]
-
 # ==========================================
 # 2. FUNGSI GENERATE NASKAH (DIUPDATE UNTUK B-ROLL CEWEK CANTIK)
 # ==========================================
