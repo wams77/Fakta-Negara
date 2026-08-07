@@ -3,6 +3,7 @@ groq==0.4.2
 requests==2.31.0
 edge-tts
 moviepy==1.0.3
+Pillow==9.5.0
 asyncio
 google-api-python-client==2.115.0
 google-auth-httplib2==0.2.0
