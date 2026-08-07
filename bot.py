@@ -180,7 +180,7 @@ def render_video(json_data, video_files):
     print("[+] Video berhasil dibuat: hasil_shorts.mp4")
 
 # ==========================================
-# 6. FUNGSI UPLOAD YOUTUBE API
+# 6. FUNGSI UPLOAD YOUTUBE API (LANGSUNG PUBLIK)
 # ==========================================
 def upload_to_youtube(video_file, judul, deskripsi):
     print("[*] Memulai proses upload ke YouTube...")
@@ -202,11 +202,11 @@ def upload_to_youtube(video_file, judul, deskripsi):
             'snippet': {
                 'title': judul[:100], 
                 'description': deskripsi,
-                'tags': ['shorts', 'faktaunik', 'negaradunia', 'travel'],
-                'categoryId': '22'
+                'tags': ['shorts', 'faktaunik', 'cewek', 'faktamenarik'],
+                'categoryId': '22' # Kategori People & Blogs
             },
             'status': {
-                'privacyStatus': 'private', # Default 'private' untuk uji coba (ubah ke 'public' saat sudah siap)
+                'privacyStatus': 'public', # <-- INI SUDAH DIUBAH MENJADI PUBLIC
                 'selfDeclaredMadeForKids': False
             }
         }
@@ -224,7 +224,7 @@ def upload_to_youtube(video_file, judul, deskripsi):
             if status:
                 print(f"[*] Uploading... {int(status.progress() * 100)}%")
                 
-        print(f"[+] Upload Selesai! ID Video: {response['id']}")
+        print(f"[+] Upload Selesai dan Video Publik! ID Video: {response['id']}")
     finally:
         if os.path.exists("token.json"):
             os.remove("token.json")
