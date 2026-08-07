@@ -15,21 +15,21 @@ GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 PEXELS_API_KEY = os.environ.get("PEXELS_API_KEY")
 YOUTUBE_TOKEN = os.environ.get("YOUTUBE_TOKEN")
 
-# Daftar negara yang akan dipilih secara acak oleh bot
+# Daftar negara
 NEGARA_LIST = [
     "Jepang", "Islandia", "Italia", "Meksiko", "Mesir", 
     "Kanada", "Swiss", "India", "Brasil", "Turki", "Korea Selatan",
-    "Belanda", "Norwegia", "Selandia Baru", "Maroko"
+    "Belanda", "Norwegia", "Selandia Baru", "Maroko", "Argentina"
 ]
 
 # ==========================================
-# 2. FUNGSI GENERATE NASKAH (GROQ API)
+# 2. FUNGSI GENERATE NASKAH (GROQ API - Llama 3.3)
 # ==========================================
 def get_script_from_groq(negara):
-    print(f"[*] Meminta naskah untuk {negara} dari Groq API...")
+    print(f"[*] Meminta naskah untuk {negara} dari Groq API (Llama 3.3 70B)...")
     client = Groq(api_key=GROQ_API_KEY)
     
-    prompt = f"""Kamu adalah pembuat konten YouTube Shorts. Buatkan 3 fakta unik tentang kehidupan, tradisi, atau budaya di negara {negara}. 
+    prompt = f"""Kamu adalah pembuat konten YouTube Shorts profesional. Buatkan 3 fakta unik tentang kehidupan, tradisi, atau budaya di negara {negara}. 
     Naskah harus berbahasa Indonesia, santai, dan durasi jika dibaca maksimal 45 detik.
     Berikan 3 kata kunci bahasa Inggris (maksimal 3 kata per keyword) yang spesifik dan visual untuk mencari 3 video latar berbeda di Pexels yang relevan.
     Wajib balas HANYA dengan format JSON seperti ini:
@@ -40,9 +40,10 @@ def get_script_from_groq(negara):
         "query_pexels": ["keyword 1", "keyword 2", "keyword 3"]
     }}"""
 
+    # MENGGUNAKAN LLAMA 3.3 TERBARU
     response = client.chat.completions.create(
         messages=[{"role": "user", "content": prompt}],
-        model="mixtral-8x7b-32768",
+        model="llama-3.3-70b-versatile", 
         response_format={"type": "json_object"}
     )
     
@@ -53,7 +54,6 @@ def get_script_from_groq(negara):
 # ==========================================
 async def create_voiceover(text, output_filename="audio.mp3"):
     print("[*] Membuat Voiceover (Text-to-Speech)...")
-    # Menggunakan suara wanita Indonesia (GadisNeural)
     communicate = edge_tts.Communicate(text, "id-ID-GadisNeural")
     await communicate.save(output_filename)
 
@@ -73,7 +73,6 @@ def download_multiple_pexels_videos(queries):
             print(f"[!] Video tidak ditemukan untuk query: '{query}'. Melewati...")
             continue
             
-        # Ambil link video dengan kualitas HD (tinggi >= 1080)
         video_files = response["videos"][0]["video_files"]
         hd_file = next((file for file in video_files if file["height"] >= 1080), video_files[0])
         video_url = hd_file["link"]
@@ -102,27 +101,22 @@ def render_video(json_data, video_files):
     
     audio = AudioFileClip("audio.mp3")
     
-    # Memuat, menyeragamkan ukuran, dan membuang suara asli dari semua video Pexels
     clips = []
     for file in video_files:
         print(f"[*] Memproses klip: {file}")
         clip = VideoFileClip(file).without_audio().resize((1080, 1920))
         clips.append(clip)
         
-    # Menggabungkan semua video Pexels menjadi satu video panjang berurutan
     gabungan_video = concatenate_videoclips(clips, method="compose")
     
-    # Logika Durasi: Potong atau Ulang video agar pas dengan durasi suara
     if gabungan_video.duration < audio.duration:
         print("[!] Gabungan video lebih pendek dari audio. Melakukan looping...")
         gabungan_video = gabungan_video.fx(vfx.loop, duration=audio.duration)
     else:
         gabungan_video = gabungan_video.subclip(0, audio.duration)
         
-    # Memasukkan narasi TTS
     gabungan_video = gabungan_video.set_audio(audio)
     
-    # Tambahkan Teks Judul di tengah atas video
     try:
         txt_clip = TextClip(
             json_data["judul"], 
@@ -148,7 +142,6 @@ def render_video(json_data, video_files):
         preset="ultrafast"
     )
     
-    # Bersihkan file sampah
     print("[*] Membersihkan file sementara...")
     for file in video_files:
         if os.path.exists(file):
@@ -170,7 +163,6 @@ def upload_to_youtube(video_file, judul, deskripsi):
     if not YOUTUBE_TOKEN:
         raise Exception("YOUTUBE_TOKEN tidak ditemukan di environment variables.")
         
-    # Buat file token.json sementara dari text rahasia GitHub
     with open("token.json", "w") as f:
         f.write(YOUTUBE_TOKEN)
         
@@ -180,10 +172,10 @@ def upload_to_youtube(video_file, judul, deskripsi):
         
         body = {
             'snippet': {
-                'title': judul[:100], # YouTube membatasi judul max 100 karakter
+                'title': judul[:100], 
                 'description': deskripsi,
                 'tags': ['shorts', 'faktaunik', 'negaradunia', 'travel'],
-                'categoryId': '22' # Kategori People & Blogs
+                'categoryId': '22'
             },
             'status': {
                 'privacyStatus': 'private', # Default 'private' untuk uji coba (ubah ke 'public' saat sudah siap)
@@ -206,7 +198,6 @@ def upload_to_youtube(video_file, judul, deskripsi):
                 
         print(f"[+] Upload Selesai! ID Video: {response['id']}")
     finally:
-        # Hapus token dari server setelah selesai untuk keamanan
         if os.path.exists("token.json"):
             os.remove("token.json")
 
@@ -218,7 +209,7 @@ async def main():
     print(f"=== MEMULAI BOT UNTUK NEGARA: {negara.upper()} ===")
     
     try:
-        # Tahap 1: Generate Konten JSON dengan 3 kata kunci
+        # Tahap 1: Generate Konten JSON
         konten = get_script_from_groq(negara)
         print("Data JSON dari Groq:", json.dumps(konten, indent=2))
         
@@ -232,7 +223,7 @@ async def main():
         render_video(konten, downloaded_videos)
         
         # Tahap 5: Upload ke YouTube
-        deskripsi_lengkap = f"{konten['deskripsi']}\n\nFootage by Pexels\nScript by Groq AI\nVoice by Edge-TTS\n#shorts"
+        deskripsi_lengkap = f"{konten['deskripsi']}\n\nFootage by Pexels\nScript by Llama-3.3 70B via Groq\nVoice by Edge-TTS\n#shorts"
         upload_to_youtube("hasil_shorts.mp4", konten["judul"], deskripsi_lengkap)
         
         print("=== SEMUA PROSES BERHASIL SELESAI ===")
