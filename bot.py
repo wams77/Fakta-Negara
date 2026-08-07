@@ -44,29 +44,36 @@ NEGARA_LIST = [
     "Yaman", "Yordania", "Yunani", "Zambia", "Zimbabwe"
 ]
 # ==========================================
-# 2. FUNGSI GENERATE NASKAH (DIUPDATE UNTUK B-ROLL CEWEK CANTIK)
+# 2. FUNGSI GENERATE NASKAH (JUDUL KREATIF & BERVARIASI)
 # ==========================================
 def get_script_from_groq(negara):
     print(f"[*] Meminta naskah untuk {negara} dari Groq API (Llama 3.3 70B)...")
     client = Groq(api_key=GROQ_API_KEY)
     
-    prompt = f"""Kamu adalah pembuat konten YouTube Shorts dengan gaya bercerita yang super santai dan ekspresif. 
-    Tugasmu membuat naskah video maksimal 45 detik (sekitar 70 kata) tentang 3 KEBIASAAN UNIK, ANEH, atau MENCENGANGKAN dari para CEWEK atau GADIS di negara {negara}.
+    prompt = f"""Kamu adalah pembuat konten YouTube Shorts profesional dengan kreativitas tinggi dalam merancang judul yang memancing klik (high-CTR). 
+    Tugasmu membuat naskah video maksimal 45 detik tentang KEBIASAAN UNIK, ANEH, atau MENCENGANGKAN dari para CEWEK atau GADIS di negara {negara}.
 
-    ATURAN SANGAT KETAT AGAR SUARA ROBOT TERDENGAR SEPERTI MANUSIA:
-    1. WAJIB gunakan bahasa Indonesia tutur/gaul (contoh: "Tahu nggak sih...", "cewek-cewek di sana tuh...", "banget", "bikin geleng kepala", "nah"). Jangan gunakan bahasa kaku!
+    ATURAN SANGAT KETAT UNTUK JUDUL (WAJIB DIIKUTI):
+    1. JANGAN PERNAH menggunakan template judul yang berulang atau kaku (seperti "3 Fakta Unik..." atau "Kebiasaan Cewek...").
+    2. Variasikan gaya judul di setiap pembuatan video. Gunakan salah satu gaya ini secara bergantian:
+       - Gaya Pertanyaan Misterius (Contoh: "Kenapa Cewek di Sini Suka Bikin Bingung?")
+       - Gaya Pernyataan Mengejutkan / Absurd (Contoh: "Hal Gila yang Cuma Berani Dilakukan Cewek...")
+       - Gaya Rasa Penasaran / Tabu (Contoh: "Rahasia Gelap di Balik Senyuman Cewek...")
+    3. Panjang judul padat, maksimal 50-60 karakter agar terlihat penuh di layar HP.
+
+    ATURAN AGAR SUARA ROBOT TERDENGAR NATURAL:
+    1. WAJIB gunakan bahasa Indonesia tutur/gaul (contoh: "Tahu nggak sih...", "cewek-cewek di sana tuh...", "banget", "bikin geleng kepala", "nah").
     2. Perbanyak tanda baca elipsis (...) untuk memaksa jeda napas. Gunakan tanda seru (!) untuk penekanan emosi.
-    3. Kalimat pertama WAJIB berupa HOOK yang nyeleneh (Contoh: "Pernah bayangin nggak, cewek di {negara} tuh ternyata kebiasaannya...").
-    4. Hindari sapaan basi seperti "Halo teman-teman". Langsung ke inti cerita.
+    3. Kalimat pertama WAJIB berupa HOOK yang nyeleneh. Langsung ke inti cerita tanpa sapaan basi.
     
-    ATURAN UNTUK PEXELS (SANGAT PENTING):
+    ATURAN UNTUK PEXELS:
     Berikan 3 kata kunci bahasa Inggris (maks. 3 kata per keyword) untuk mencari 3 video latar di Pexels. 
-    - Prioritas UTAMA adalah mencari visual wanita cantik dari negara tersebut (contoh: "beautiful {negara} woman", "pretty {negara} girl", "asian beauty").
-    - Jika faktanya terlalu spesifik, padukan visual wanita dengan aktivitasnya (contoh: "woman eating noodle", "girl walking night").
+    - Prioritas UTAMA adalah mencari visual wanita cantik dari negara tersebut (contoh: "beautiful {negara} woman", "pretty {negara} girl").
+    - Jika faktanya spesifik, padukan visual wanita dengan aktivitasnya (contoh: "woman eating noodle", "girl walking night").
 
-    Wajib balas HANYA dengan format JSON seperti ini tanpa teks pengantar apa pun:
+    Wajib balas HANYA dengan format JSON tanpa teks pengantar apa pun:
     {{
-        "judul": "Judul clickbait dan bikin penasaran tentang cewek",
+        "judul": "Judul kreatif, bervariasi, dan tidak monoton",
         "deskripsi": "Deskripsi singkat dan 3 hashtag",
         "naskah": "Teks naskah lengkap dengan gaya bahasa gaul dan tanda baca jeda",
         "query_pexels": ["keyword 1", "keyword 2", "keyword 3"]
@@ -79,7 +86,6 @@ def get_script_from_groq(negara):
     )
     
     return json.loads(response.choices[0].message.content)
-
 # ==========================================
 # 3. FUNGSI TEXT-TO-SPEECH (DIUPDATE MENGGUNAKAN SUARA PRIA NATURAL)
 # ==========================================
