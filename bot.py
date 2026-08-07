@@ -23,7 +23,7 @@ NEGARA_LIST = [
 ]
 
 # ==========================================
-# 2. FUNGSI GENERATE NASKAH (DIUPDATE UNTUK TEMA CEWEK & SUARA NATURAL)
+# 2. FUNGSI GENERATE NASKAH (DIUPDATE UNTUK B-ROLL CEWEK CANTIK)
 # ==========================================
 def get_script_from_groq(negara):
     print(f"[*] Meminta naskah untuk {negara} dari Groq API (Llama 3.3 70B)...")
@@ -37,7 +37,11 @@ def get_script_from_groq(negara):
     2. Perbanyak tanda baca elipsis (...) untuk memaksa jeda napas. Gunakan tanda seru (!) untuk penekanan emosi.
     3. Kalimat pertama WAJIB berupa HOOK yang nyeleneh (Contoh: "Pernah bayangin nggak, cewek di {negara} tuh ternyata kebiasaannya...").
     4. Hindari sapaan basi seperti "Halo teman-teman". Langsung ke inti cerita.
-    5. Berikan 3 kata kunci bahasa Inggris (maks. 3 kata per keyword) untuk mencari 3 video di Pexels. (Fokus pada visual wanita, aktivitas mereka, atau lokasi relevan).
+    
+    ATURAN UNTUK PEXELS (SANGAT PENTING):
+    Berikan 3 kata kunci bahasa Inggris (maks. 3 kata per keyword) untuk mencari 3 video latar di Pexels. 
+    - Prioritas UTAMA adalah mencari visual wanita cantik dari negara tersebut (contoh: "beautiful {negara} woman", "pretty {negara} girl", "asian beauty").
+    - Jika faktanya terlalu spesifik, padukan visual wanita dengan aktivitasnya (contoh: "woman eating noodle", "girl walking night").
 
     Wajib balas HANYA dengan format JSON seperti ini tanpa teks pengantar apa pun:
     {{
@@ -56,13 +60,15 @@ def get_script_from_groq(negara):
     return json.loads(response.choices[0].message.content)
 
 # ==========================================
-# 3. FUNGSI TEXT-TO-SPEECH (EDGE TTS)
+# 3. FUNGSI TEXT-TO-SPEECH (DIUPDATE MENGGUNAKAN SUARA PRIA NATURAL)
 # ==========================================
 async def create_voiceover(text, output_filename="audio.mp3"):
-    print("[*] Membuat Voiceover (Text-to-Speech)...")
-    communicate = edge_tts.Communicate(text, "id-ID-GadisNeural")
+    print("[*] Membuat Voiceover (Text-to-Speech) dengan suara pria...")
+    
+    # id-ID-ArdiNeural adalah suara pria. 
+    # rate="+5%" ditambahkan opsional jika Anda ingin bicaranya sedikit lebih cepat dan energik.
+    communicate = edge_tts.Communicate(text, "id-ID-ArdiNeural", rate="+5%")
     await communicate.save(output_filename)
-
 # ==========================================
 # 4. FUNGSI UNDUH MULTIPLE VIDEO (PEXELS API)
 # ==========================================
