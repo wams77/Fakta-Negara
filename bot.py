@@ -5,7 +5,7 @@ import requests
 import asyncio
 import edge_tts
 from groq import Groq
-from moviepy.editor import VideoFileClip, AudioFileClip, TextClip, CompositeVideoClip
+from moviepy.editor import VideoFileClip, AudioFileClip, TextClip, CompositeVideoClip, concatenate_videoclips
 import moviepy.video.fx.all as vfx
 
 # ==========================================
@@ -18,7 +18,8 @@ YOUTUBE_TOKEN = os.environ.get("YOUTUBE_TOKEN")
 # Daftar negara yang akan dipilih secara acak oleh bot
 NEGARA_LIST = [
     "Jepang", "Islandia", "Italia", "Meksiko", "Mesir", 
-    "Kanada", "Swiss", "India", "Brasil", "Turki", "Korea Selatan"
+    "Kanada", "Swiss", "India", "Brasil", "Turki", "Korea Selatan",
+    "Belanda", "Norwegia", "Selandia Baru", "Maroko"
 ]
 
 # ==========================================
@@ -30,13 +31,13 @@ def get_script_from_groq(negara):
     
     prompt = f"""Kamu adalah pembuat konten YouTube Shorts. Buatkan 3 fakta unik tentang kehidupan, tradisi, atau budaya di negara {negara}. 
     Naskah harus berbahasa Indonesia, santai, dan durasi jika dibaca maksimal 45 detik.
-    Berikan juga 1 kata kunci bahasa Inggris (maksimal 3 kata) yang spesifik dan visual untuk mencari video latar di Pexels (contoh: "Tokyo neon night", "Iceland snow", "Rome street").
+    Berikan 3 kata kunci bahasa Inggris (maksimal 3 kata per keyword) yang spesifik dan visual untuk mencari 3 video latar berbeda di Pexels yang relevan.
     Wajib balas HANYA dengan format JSON seperti ini:
     {{
         "judul": "Judul Shorts yang menarik",
         "deskripsi": "Deskripsi singkat video dan 3 hashtag",
         "naskah": "Teks naskah lengkap",
-        "query_pexels": "kata kunci"
+        "query_pexels": ["keyword 1", "keyword 2", "keyword 3"]
     }}"""
 
     response = client.chat.completions.create(
@@ -57,65 +58,87 @@ async def create_voiceover(text, output_filename="audio.mp3"):
     await communicate.save(output_filename)
 
 # ==========================================
-# 4. FUNGSI UNDUH VIDEO Latar (PEXELS API)
+# 4. FUNGSI UNDUH MULTIPLE VIDEO (PEXELS API)
 # ==========================================
-def download_pexels_video(query, output_filename="background.mp4"):
-    print(f"[*] Mencari video di Pexels untuk kata kunci: '{query}'...")
+def download_multiple_pexels_videos(queries):
+    print(f"[*] Mencari video di Pexels untuk kata kunci: {queries}")
     headers = {"Authorization": PEXELS_API_KEY}
-    url = f"https://api.pexels.com/videos/search?query={query}&orientation=portrait&per_page=1"
+    downloaded_files = []
     
-    response = requests.get(url, headers=headers).json()
-    if not response.get("videos"):
-        raise Exception(f"Video tidak ditemukan di Pexels untuk query: {query}")
-    
-    # Ambil link video dengan kualitas HD (tinggi >= 1080)
-    video_files = response["videos"][0]["video_files"]
-    hd_file = next((file for file in video_files if file["height"] >= 1080), video_files[0])
-    video_url = hd_file["link"]
-    
-    print("[*] Mengunduh video...")
-    with requests.get(video_url, stream=True) as r:
-        r.raise_for_status()
-        with open(output_filename, 'wb') as f:
-            for chunk in r.iter_content(chunk_size=8192):
-                f.write(chunk)
+    for idx, query in enumerate(queries):
+        url = f"https://api.pexels.com/videos/search?query={query}&orientation=portrait&per_page=1"
+        response = requests.get(url, headers=headers).json()
+        
+        if not response.get("videos"):
+            print(f"[!] Video tidak ditemukan untuk query: '{query}'. Melewati...")
+            continue
+            
+        # Ambil link video dengan kualitas HD (tinggi >= 1080)
+        video_files = response["videos"][0]["video_files"]
+        hd_file = next((file for file in video_files if file["height"] >= 1080), video_files[0])
+        video_url = hd_file["link"]
+        
+        output_filename = f"bg_{idx}.mp4"
+        print(f"[*] Mengunduh video {idx+1}... ({query})")
+        
+        with requests.get(video_url, stream=True) as r:
+            r.raise_for_status()
+            with open(output_filename, 'wb') as f:
+                for chunk in r.iter_content(chunk_size=8192):
+                    f.write(chunk)
+                    
+        downloaded_files.append(output_filename)
+        
+    if not downloaded_files:
+        raise Exception("Gagal mengunduh semua video Pexels.")
+        
+    return downloaded_files
 
 # ==========================================
-# 5. FUNGSI RENDER VIDEO (MOVIEPY)
+# 5. FUNGSI RENDER VIDEO GABUNGAN (MOVIEPY)
 # ==========================================
-def render_video(json_data):
-    print("[*] Memulai proses render video...")
+def render_video(json_data, video_files):
+    print("[*] Memulai proses render penggabungan video...")
     
     audio = AudioFileClip("audio.mp3")
-    video = VideoFileClip("background.mp4")
     
-    # Logika Durasi: Jika video lebih pendek dari audio, ulang (loop) videonya
-    if video.duration < audio.duration:
-        print("[!] Video lebih pendek dari audio. Melakukan looping video...")
-        video = video.fx(vfx.loop, duration=audio.duration)
-    else:
-        video = video.subclip(0, audio.duration)
+    # Memuat, menyeragamkan ukuran, dan membuang suara asli dari semua video Pexels
+    clips = []
+    for file in video_files:
+        print(f"[*] Memproses klip: {file}")
+        clip = VideoFileClip(file).without_audio().resize((1080, 1920))
+        clips.append(clip)
         
-    video = video.set_audio(audio)
+    # Menggabungkan semua video Pexels menjadi satu video panjang berurutan
+    gabungan_video = concatenate_videoclips(clips, method="compose")
+    
+    # Logika Durasi: Potong atau Ulang video agar pas dengan durasi suara
+    if gabungan_video.duration < audio.duration:
+        print("[!] Gabungan video lebih pendek dari audio. Melakukan looping...")
+        gabungan_video = gabungan_video.fx(vfx.loop, duration=audio.duration)
+    else:
+        gabungan_video = gabungan_video.subclip(0, audio.duration)
+        
+    # Memasukkan narasi TTS
+    gabungan_video = gabungan_video.set_audio(audio)
     
     # Tambahkan Teks Judul di tengah atas video
     try:
         txt_clip = TextClip(
             json_data["judul"], 
-            fontsize=40, 
+            fontsize=45, 
             color='white', 
             bg_color='rgba(0,0,0,0.5)', 
             method='caption', 
-            size=(video.w - 100, None)
+            size=(gabungan_video.w - 100, None)
         )
-        txt_clip = txt_clip.set_pos(('center', 'center')).set_duration(video.duration)
-        final_video = CompositeVideoClip([video, txt_clip])
+        txt_clip = txt_clip.set_pos(('center', 'center')).set_duration(gabungan_video.duration)
+        final_video = CompositeVideoClip([gabungan_video, txt_clip])
     except Exception as e:
         print(f"[!] Gagal membuat teks (ImageMagick error), merender tanpa teks. Error: {e}")
-        final_video = video
+        final_video = gabungan_video
     
     print("[*] Mengekspor hasil akhir (Ini akan memakan waktu)...")
-    # Setting CPU threads agar tidak crash di GitHub Actions
     final_video.write_videofile(
         "hasil_shorts.mp4", 
         fps=24, 
@@ -124,6 +147,15 @@ def render_video(json_data):
         threads=2, 
         preset="ultrafast"
     )
+    
+    # Bersihkan file sampah
+    print("[*] Membersihkan file sementara...")
+    for file in video_files:
+        if os.path.exists(file):
+            os.remove(file)
+    if os.path.exists("audio.mp3"):
+        os.remove("audio.mp3")
+            
     print("[+] Video berhasil dibuat: hasil_shorts.mp4")
 
 # ==========================================
@@ -150,11 +182,11 @@ def upload_to_youtube(video_file, judul, deskripsi):
             'snippet': {
                 'title': judul[:100], # YouTube membatasi judul max 100 karakter
                 'description': deskripsi,
-                'tags': ['shorts', 'faktaunik', 'negaradunia', 'faktamenarik'],
-                'categoryId': '22' # People & Blogs
+                'tags': ['shorts', 'faktaunik', 'negaradunia', 'travel'],
+                'categoryId': '22' # Kategori People & Blogs
             },
             'status': {
-                'privacyStatus': 'private', # Default 'private' untuk uji coba. Ubah ke 'public' jika sudah siap.
+                'privacyStatus': 'private', # Default 'private' untuk uji coba (ubah ke 'public' saat sudah siap)
                 'selfDeclaredMadeForKids': False
             }
         }
@@ -186,21 +218,21 @@ async def main():
     print(f"=== MEMULAI BOT UNTUK NEGARA: {negara.upper()} ===")
     
     try:
-        # Tahap 1: Generate Konten
+        # Tahap 1: Generate Konten JSON dengan 3 kata kunci
         konten = get_script_from_groq(negara)
         print("Data JSON dari Groq:", json.dumps(konten, indent=2))
         
-        # Tahap 2: Text-to-Speech
+        # Tahap 2: Buat Suara TTS
         await create_voiceover(konten["naskah"])
         
-        # Tahap 3: Download Video
-        download_pexels_video(konten["query_pexels"])
+        # Tahap 3: Download 3 Video Berbeda
+        downloaded_videos = download_multiple_pexels_videos(konten["query_pexels"])
         
-        # Tahap 4: Render Video Final
-        render_video(konten)
+        # Tahap 4: Render Video Final Gabungan
+        render_video(konten, downloaded_videos)
         
         # Tahap 5: Upload ke YouTube
-        deskripsi_lengkap = f"{konten['deskripsi']}\n\nVideo Footage by Pexels\nScript by Groq AI\nVoice by Edge-TTS"
+        deskripsi_lengkap = f"{konten['deskripsi']}\n\nFootage by Pexels\nScript by Groq AI\nVoice by Edge-TTS\n#shorts"
         upload_to_youtube("hasil_shorts.mp4", konten["judul"], deskripsi_lengkap)
         
         print("=== SEMUA PROSES BERHASIL SELESAI ===")
