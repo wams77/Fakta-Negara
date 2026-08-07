@@ -217,10 +217,40 @@ def upload_to_youtube(video_file, judul, deskripsi):
             os.remove("token.json")
 
 # ==========================================
-# 7. MAIN FUNCTION (EKSEKUSI UTAMA)
+# FUNGSI RIWAYAT (HISTORY)
+# ==========================================
+HISTORY_FILE = "history.txt"
+
+def load_history():
+    """Membaca daftar negara yang sudah dibuat videonya."""
+    if not os.path.exists(HISTORY_FILE):
+        return []
+    with open(HISTORY_FILE, "r") as f:
+        # Membaca file dan menghapus enter/spasi kosong
+        return [line.strip() for line in f.readlines() if line.strip()]
+
+def save_history(negara):
+    """Menyimpan negara ke dalam file riwayat."""
+    with open(HISTORY_FILE, "a") as f:
+        f.write(f"{negara}\n")
+    print(f"[*] '{negara}' berhasil dicatat di {HISTORY_FILE}")
+
+# ==========================================
+# 7. MAIN FUNCTION (DIPERBARUI)
 # ==========================================
 async def main():
-    negara = random.choice(NEGARA_LIST)
+    # 1. Cek riwayat
+    riwayat = load_history()
+    negara_tersedia = [n for n in NEGARA_LIST if n not in riwayat]
+    
+    # 2. Jika semua negara sudah dibahas, kosongkan riwayat agar bot bisa mengulang siklus
+    if not negara_tersedia:
+        print("[!] Semua negara di daftar telah dibahas. Mereset riwayat...")
+        open(HISTORY_FILE, "w").close() # Mengosongkan file
+        negara_tersedia = NEGARA_LIST
+        
+    # 3. Pilih negara dari daftar yang belum pernah dibahas
+    negara = random.choice(negara_tersedia)
     print(f"=== MEMULAI BOT UNTUK NEGARA: {negara.upper()} ===")
     
     try:
@@ -241,6 +271,8 @@ async def main():
         deskripsi_lengkap = f"{konten['deskripsi']}\n\nFootage by Pexels\nScript by Llama-3.3 70B via Groq\nVoice by Edge-TTS\n#shorts"
         upload_to_youtube("hasil_shorts.mp4", konten["judul"], deskripsi_lengkap)
         
+        # Tahap 6: Catat ke riwayat HANYA jika upload berhasil
+        save_history(negara)
         print("=== SEMUA PROSES BERHASIL SELESAI ===")
         
     except Exception as e:
