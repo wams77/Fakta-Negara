@@ -23,39 +23,30 @@ NEGARA_LIST = [
 ]
 
 # ==========================================
-# 2. FUNGSI GENERATE NASKAH (GROQ API - Llama 3.3)
+# 2. FUNGSI GENERATE NASKAH (DIUPDATE UNTUK TEMA CEWEK & SUARA NATURAL)
 # ==========================================
 def get_script_from_groq(negara):
     print(f"[*] Meminta naskah untuk {negara} dari Groq API (Llama 3.3 70B)...")
     client = Groq(api_key=GROQ_API_KEY)
     
-    prompt = f"""Kamu adalah pakar 'hook' dan 'storytelling' untuk YouTube Shorts. 
-    Tugasmu membuat naskah video maksimal 45 detik (sekitar 70-80 kata) tentang 3 fakta SUPER UNIK, ANEH, atau MENCENGANGKAN dari negara {negara}.
+    prompt = f"""Kamu adalah pembuat konten YouTube Shorts dengan gaya bercerita yang super santai dan ekspresif. 
+    Tugasmu membuat naskah video maksimal 45 detik (sekitar 70 kata) tentang 3 KEBIASAAN UNIK, ANEH, atau MENCENGANGKAN dari para CEWEK atau GADIS di negara {negara}.
 
-    ATURAN SANGAT KETAT:
-    1. JANGAN gunakan fakta umum buku pelajaran. Cari rahasia gila, hukum aneh, sejarah lucu, atau tradisi absurd.
-    2. Kalimat pertama WAJIB berupa HOOK yang memancing rasa penasaran ekstrem (Contoh: "Tahu nggak negara yang...", "Pernah bayangin hidup di tempat yang...").
-    3. Gunakan bahasa Indonesia santai, ekspresif, mengalir cepat, tanpa sapaan membosankan seperti "Halo semua".
-    4. Akhiri dengan kalimat pancingan agar penonton berkomentar.
-    5. Berikan 3 kata kunci bahasa Inggris (maks. 3 kata per keyword) untuk mencari 3 video latar di Pexels. Kata kunci harus BENDA/AKTIVITAS VISUAL NYATA, bukan abstrak.
+    ATURAN SANGAT KETAT AGAR SUARA ROBOT TERDENGAR SEPERTI MANUSIA:
+    1. WAJIB gunakan bahasa Indonesia tutur/gaul (contoh: "Tahu nggak sih...", "cewek-cewek di sana tuh...", "banget", "bikin geleng kepala", "nah"). Jangan gunakan bahasa kaku!
+    2. Perbanyak tanda baca elipsis (...) untuk memaksa jeda napas. Gunakan tanda seru (!) untuk penekanan emosi.
+    3. Kalimat pertama WAJIB berupa HOOK yang nyeleneh (Contoh: "Pernah bayangin nggak, cewek di {negara} tuh ternyata kebiasaannya...").
+    4. Hindari sapaan basi seperti "Halo teman-teman". Langsung ke inti cerita.
+    5. Berikan 3 kata kunci bahasa Inggris (maks. 3 kata per keyword) untuk mencari 3 video di Pexels. (Fokus pada visual wanita, aktivitas mereka, atau lokasi relevan).
 
     Wajib balas HANYA dengan format JSON seperti ini tanpa teks pengantar apa pun:
     {{
-        "judul": "Judul clickbait dan bikin penasaran",
+        "judul": "Judul clickbait dan bikin penasaran tentang cewek",
         "deskripsi": "Deskripsi singkat dan 3 hashtag",
-        "naskah": "Teks naskah lengkap dari hook sampai akhir",
+        "naskah": "Teks naskah lengkap dengan gaya bahasa gaul dan tanda baca jeda",
         "query_pexels": ["keyword 1", "keyword 2", "keyword 3"]
     }}"""
 
-    response = client.chat.completions.create(
-        messages=[{"role": "user", "content": prompt}],
-        model="llama-3.3-70b-versatile", 
-        response_format={"type": "json_object"}
-    )
-    
-    return json.loads(response.choices[0].message.content)
-
-    # MENGGUNAKAN LLAMA 3.3 TERBARU
     response = client.chat.completions.create(
         messages=[{"role": "user", "content": prompt}],
         model="llama-3.3-70b-versatile", 
